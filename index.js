@@ -4,9 +4,57 @@ function initialize() {
 
 function bindEventListeners() {
   var searchButton = document.getElementById('search-button');
-  // searchButton.onclick = performSearch;
-  searchButton.onclick = handleSearchResults.bind(undefined, JSON.stringify(sampleResult));
+  var searchResults = document.getElementById('search-results');
+  var lightboxClose = document.getElementById('lightbox-close');
 
+  // for real world use
+  // searchButton.addEventListener('click', performSearch);
+
+  // for dev
+  searchButton.addEventListener('click', handleSearchResults.bind(undefined, JSON.stringify(sampleResult)));
+
+  // for browserstack testing
+  // handleSearchResults(JSON.stringify(sampleResult));
+
+  // Use the parent element to handle all clicks on the child image divs
+  searchResults.addEventListener('click', handleImageClick);
+
+  lightboxClose.addEventListener('click', toggleLightbox);
+}
+
+function handleSearchResults(results) {
+  // parse out the items array from the api response
+  var parsedResults = JSON.parse(results).items;
+  // loop through the results and put the data on the page (for now)
+  // TODO: have a 'state' object that contains the current state (for lightbox & etc)
+  parsedResults.forEach(function(item, index) {
+    var imageElement = document.getElementById('img' + index);
+    imageElement.style.backgroundImage = 'url(' + item.image.thumbnailLink + ')';
+  });
+}
+
+function handleImageClick(e) {
+  // TODO: select e.target's image id & fill lightbox appropriately
+  // only open the lightbox if the clicked element is one of our images
+  if (e.target.id.includes('img')) {
+    toggleLightbox();
+  }
+
+  e.stopPropagation();
+}
+
+//// TODO: only toggle lightbox once search has returned results
+function toggleLightbox() {
+  // Select the lightbox background
+  var lightboxBackground = document.getElementById('lightbox-background');
+  var displayStyle = window.getComputedStyle(lightboxBackground).display;
+
+  // toggle it between 'none' and 'block' for visibility
+  if (displayStyle === 'none') {
+    lightboxBackground.style.display = 'block';
+  } else {
+    lightboxBackground.style.display = 'none';
+  }
 }
 
 function performSearch(e) {
@@ -48,23 +96,11 @@ function buildURL() {
 
   // convert the parameters object into an array of properly encoded strings
   // then join the array itms with &s and add them to the existing url string
-  url += Object.keys(params).map(function(key) {
+  url = url.concat(Object.keys(params).map(function(key) {
     return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-  }).join('&');
+  }).join('&'));
 
   return url;
-}
-
-function handleSearchResults(results) {
-  // parse out the items array from the api response
-  var parsedResults = JSON.parse(results).items;
-  // loop through the results and put the data on the page (for now)
-  // TODO: have a 'state' object that contains the current state (for lightbox & etc)
-  parsedResults.forEach(function(item, index) {
-    var imageElement = document.getElementById('img' + index);
-    imageElement.style.backgroundImage = 'url(' + item.image.thumbnailLink + ')';
-  });
-
 }
 
 var sampleResult =

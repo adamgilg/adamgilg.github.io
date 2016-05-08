@@ -1,12 +1,12 @@
 *, *:after, *:before {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   -box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 
 [class*='col-'] {
-  padding-right: 10px;
   float: left;
+  padding: 0px 10px 10px 0px;
 }
 
 /*[class*='col-']:last-of-type {
@@ -21,20 +21,58 @@
 }
 
 .grid:after {
+  clear: both;
   content: "";
   display: table;
-  clear: both;
 }
 
 .img-holder {
-  height: 200px;
-  margin-bottom: 10px;
-  background-repeat: no-repeat;
   background-position: center;
+  background-repeat: no-repeat;
   background-size: cover;
+  cursor: pointer;
+  height: 200px;
 }
 
 #search-results {
-  width: 75%;
   margin: auto;
+  width: 75%;
+}
+
+#lightbox {
+  background-color: blue;
+  height: 75%;
+  margin: auto;
+  margin-top: 50px;
+  width: 50%;
+  z-index: 100;
+}
+
+#lightbox-background {
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  height: 100%;
+  left: 0%;
+  position: fixed;
+  top: 0%;
+  width: 100%;
+  z-index: 99;
+}
+
+#lightbox-image {
+  /*center horizontal and vertical, size div around it*/
+}
+
+#lightbox-close {
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  float: right;
+  height: 21px;
+  width: 21px;
+}
+
+#lightbox-close:after {
+  margin-left: 30%;
+  content: "\00d7";
 }
