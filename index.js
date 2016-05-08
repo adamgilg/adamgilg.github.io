@@ -58,12 +58,11 @@ function buildURL() {
 function handleSearchResults(results) {
   // parse out the items array from the api response
   var parsedResults = JSON.parse(results).items;
-
   // loop through the results and put the data on the page (for now)
   // TODO: have a 'state' object that contains the current state (for lightbox & etc)
   parsedResults.forEach(function(item, index) {
     var imageElement = document.getElementById('img' + index);
-    imageElement.src = item.image.thumbnailLink;
+    imageElement.style.backgroundImage = 'url(' + item.image.thumbnailLink + ')';
   });
 
 }

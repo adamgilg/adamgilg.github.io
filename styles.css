@@ -5,13 +5,13 @@
 }
 
 [class*='col-'] {
-  padding-right: 20px;
+  padding-right: 10px;
   float: left;
 }
 
-[class*='col-']:last-of-type {
+/*[class*='col-']:last-of-type {
   padding-right: 0;
-}
+}*/
 
 .col-2-3 {
   width: 66.66%;
@@ -24,4 +24,17 @@
   content: "";
   display: table;
   clear: both;
+}
+
+.img-holder {
+  height: 200px;
+  margin-bottom: 10px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+#search-results {
+  width: 75%;
+  margin: auto;
 }
