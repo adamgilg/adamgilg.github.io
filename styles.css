@@ -30,6 +30,7 @@
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  border: 1px solid black;
   cursor: pointer;
   height: 200px;
 }
@@ -40,39 +41,39 @@
 }
 
 #lightbox {
-  background-color: blue;
-  height: 75%;
-  margin: auto;
+  display: inline-block;
   margin-top: 50px;
-  width: 50%;
   z-index: 100;
 }
 
 #lightbox-background {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   display: none;
   height: 100%;
   left: 0%;
   position: fixed;
+  text-align: center;
   top: 0%;
   width: 100%;
   z-index: 99;
 }
 
 #lightbox-image {
-  /*center horizontal and vertical, size div around it*/
+  background-color: black;
+  border: 5px solid white;
+  display: block;
+  margin: auto;
 }
 
 #lightbox-close {
-  background-color: black;
   color: white;
   cursor: pointer;
   float: right;
-  height: 21px;
-  width: 21px;
+  font-size: 40px;
+  line-height: 30px;
+  margin-right: 5px;
 }
 
 #lightbox-close:after {
-  margin-left: 30%;
   content: "\00d7";
 }

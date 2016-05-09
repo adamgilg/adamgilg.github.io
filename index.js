@@ -5,8 +5,7 @@
 
   var appState = {
     images: [],
-    currentLightbox: null,
-    imageCount: 0
+    currentLightboxIndex: 0
   };
 
   function initialize() {
@@ -16,7 +15,7 @@
   function bindEventListeners() {
     var searchButton = document.getElementById('search-button');
     var searchResults = document.getElementById('search-results');
-    var lightboxClose = document.getElementById('lightbox-close');
+    var lightbox = document.getElementById('lightbox-background');
 
     // for real world use
     // searchButton.addEventListener('click', performSearch);
@@ -30,58 +29,110 @@
     // Use the parent element to handle all clicks on the child image divs
     searchResults.addEventListener('click', handleImageClick);
 
-    lightboxClose.addEventListener('click', toggleLightbox);
+    root.addEventListener('keydown', handleKeyboardInput);
+
+    lightbox.addEventListener('click', handleLightboxClick);
+  }
+
+  function handleKeyboardInput(e) {
+    switch (e.keyCode) {
+      // left arrow
+      case 37:
+        switchLightbox('left');
+        break;
+      // right arrow
+      case 39:
+        switchLightbox('right');
+        break;
+      // escape
+      case 27:
+        closeLightbox();
+        break;
+    }
   }
 
   function handleSearchResults(results) {
     // parse out the items array from the api response
     var parsedResults = JSON.parse(results).items;
-    // loop through the results and put the data on the page (for now)
-    // TODO: have a 'state' object that contains the current state (for lightbox & etc)
+
+    // Loop through the results and generate elements to put into the grid
     parsedResults.forEach(function(item) {
-      var imageElement = document.getElementById('img' + appState.imageCount);
-      imageElement.style.backgroundImage = 'url(' + item.image.thumbnailLink + ')';
+      // create the new grid element
+      // pass in the length (before we push the new item) as the new item's index
+      var element = generateImage(item.image.thumbnailLink, appState.images.length);
+      // append it to the search-results element
+      document.getElementById('search-results').appendChild(element);
 
       appState.images.push(item);
-      appState.imageCount += 1;
     });
   }
 
+  function generateImage(link, index) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'col-1-3';
+
+    var image = document.createElement('div');
+    image.className = 'img-holder';
+    image.style.backgroundImage = 'url(' + link + ')';
+    image.setAttribute('data-index', index);
+
+    wrapper.appendChild(image);
+    return wrapper;
+  }
+
   function handleImageClick(e) {
-    // TODO: select e.target's image id & fill lightbox appropriately
     // only open the lightbox if the clicked element is one of our images
-    if (e.target.id.includes('img')) {
-      setLightboxImage(e.target.id);
-      toggleLightbox();
+    if (e.target.className.includes('img-holder')) {
+      // get the index attribute and coerce it into a number
+      var imageIndex = +e.target.getAttribute('data-index');
+      // make sure it's a number if we're going to open the lightbox
+      if (imageIndex !== NaN) {
+        setLightboxImage(imageIndex);
+        openLightbox();
+      }
     }
 
     e.stopPropagation();
   }
 
-  //// TODO: only toggle lightbox once search has returned results
-  function toggleLightbox() {
-    // Select the lightbox background
-    var lightboxBackground = document.getElementById('lightbox-background');
-    var displayStyle = window.getComputedStyle(lightboxBackground).display;
+  function handleLightboxClick(e) {
+    if (e.target.id !== 'lightbox-image') {
+      closeLightbox();
+    }
 
-    // toggle it between 'none' and 'block' for visibility
-    if (displayStyle === 'none') {
-      lightboxBackground.style.display = 'block';
-    } else {
-      lightboxBackground.style.display = 'none';
+    e.stopPropagation();
+  }
+
+  // Have open/close as distinct functions to ensure we're calling the correct one
+  // Rather than single toggle function potentially being called from the wrong place
+  function closeLightbox() {
+    var lightboxBackground = document.getElementById('lightbox-background');
+    lightboxBackground.style.display = 'none';
+  }
+
+  function openLightbox() {
+    var lightboxBackground = document.getElementById('lightbox-background');
+    lightboxBackground.style.display = 'block';
+  }
+
+  function switchLightbox(direction) {
+    // determine whether to add or subtract from our lightbox index
+    var indexChange = direction === 'left' ? -1 : 1;
+    var nextImageIndex = appState.currentLightboxIndex + indexChange;
+
+    // Only switch image if the next image is within our image array range
+    if (nextImageIndex >= 0 && nextImageIndex < appState.images.length) {
+      setLightboxImage(nextImageIndex);
+      appState.currentLightboxIndex = nextImageIndex;
     }
   }
 
-  function setLightboxImage(imageID) {
-    // Strip out all non-numeric characters
-    // and convert the result into a Number
-    var imageIndex = Number(imageID.replace(/\D/g,''));
-
+  function setLightboxImage(imageIndex) {
     var currentImage = appState.images[imageIndex];
     var lightboxImage = document.getElementById('lightbox-image');
 
     lightboxImage.src = currentImage.link;
-
+    appState.currentLightboxIndex = imageIndex;
   }
 
   function performSearch(e) {
