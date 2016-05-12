@@ -13,10 +13,11 @@
   }
 
   function bindEventListeners() {
+    var searchOverlay = document.getElementById('search-overlay');
     var searchButton = document.getElementById('search-button');
     var searchResults = document.getElementById('search-results');
     var lightbox = document.getElementById('lightbox-background');
-
+    var loadMoreButton = document.getElementById('load-more-button');
     // for real world use
     // searchButton.addEventListener('click', performSearch);
 
@@ -28,10 +29,12 @@
 
     // Use the parent element to handle all clicks on the child image divs
     searchResults.addEventListener('click', handleImageClick);
+    // loadMoreButton.addEventListener('click', loadMoreResults);
 
     root.addEventListener('keydown', handleKeyboardInput);
-
+    // searchOverlay.addEventListener('transitionend', fadeComplete);
     lightbox.addEventListener('click', handleLightboxClick);
+    // lightbox.addEventListener('transitionend', fadeComplete);
   }
 
   function handleKeyboardInput(e) {
@@ -65,6 +68,19 @@
 
       appState.images.push(item);
     });
+
+    var searchOverlay = document.getElementById('search-overlay');
+    fadeInOrOut(searchOverlay);
+  }
+
+  function fadeInOrOut(element) {
+    if (element.classList.contains('show')) {
+      element.classList.remove('show');
+      element.classList.add('hide');
+    } else if (element.classList.contains('hide')) {
+      element.classList.remove('hide');
+      element.classList.add('show');
+    }
   }
 
   function generateImage(link, index) {
@@ -97,7 +113,8 @@
 
   function handleLightboxClick(e) {
     if (e.target.id !== 'lightbox-image') {
-      closeLightbox();
+      var lightboxBackground = document.getElementById('lightbox-background');
+      fadeInOrOut(lightboxBackground);
     }
 
     e.stopPropagation();
@@ -107,12 +124,12 @@
   // Rather than single toggle function potentially being called from the wrong place
   function closeLightbox() {
     var lightboxBackground = document.getElementById('lightbox-background');
-    lightboxBackground.style.display = 'none';
+    fadeInOrOut(lightboxBackground);
   }
 
   function openLightbox() {
     var lightboxBackground = document.getElementById('lightbox-background');
-    lightboxBackground.style.display = 'block';
+    fadeInOrOut(lightboxBackground);
   }
 
   function switchLightbox(direction) {
@@ -136,22 +153,28 @@
   }
 
   function performSearch(e) {
-    var request = new XMLHttpRequest();
+    // check to see if search query contains any characters
+    if (/\S/.test(document.getElementById('search-query').value)) {
+      var request = new XMLHttpRequest();
 
-    var url = buildURL();
+      var url = buildURL();
 
-    request.open('GET', url);
-    request.onload = function() {
-      console.log('status', request.status);
-      console.log('request', request);
-        handleSearchResults(request.response)
-      if (request.status === '200') {
-      } else {
-        //// TODO: implement error handling
-        console.log('error', request.status)
+      request.open('GET', url);
+      request.onload = function() {
+        console.log('status', request.status);
+        console.log('request', request);
+        // if (request.status === '200') {
+          handleSearchResults(request.response)
+        // } else {
+          //// TODO: implement error handling
+          // console.log('error', request.status)
+        // }
       }
+      request.send();
+    } else {
+      // if there are no characters, alert the user
+      alert('Please enter search terms');
     }
-    request.send();
   }
 
   function buildURL() {
@@ -160,12 +183,14 @@
     var key = 'AIzaSyCCnsPFGmseJamrNwLs4-zTf2ONYJjvTzA';
     var searchEngineID = '010842445193838990140:hpytv50nw20';
     var searchQuery = document.getElementById('search-query').value;
+    var startIndex = appState.images.length;
 
     // build out a parameters object
     var params = {
       key: key,
       cx: searchEngineID,
       q: searchQuery,
+      start: startIndex,
       searchType: 'image',
       imgSize: 'medium',
       num: 9,

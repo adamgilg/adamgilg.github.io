@@ -3,17 +3,23 @@
   <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-  <input id="search-query"></input>
-  <button id="search-button">Search</button>
+  <div id="search-overlay" class="fade show">
+    <div id="search-wrapper">
+      <input id="search-query" class="search"></input>
+      <button id="search-button" class="search">Search</button>
+    </div>
+  </div>
 
-  <div id="lightbox-background">
+  <div id="lightbox-background" class="fade hide">
     <div id="lightbox">
-      <img id="lightbox-image" src="https://upload.wikimedia.org/wikipedia/en/8/85/Adele_-_Hello_(Official_Single_Cover).png"></img>
+      <img id="lightbox-image"></img>
       <div id="lightbox-close"></div>
     </div>
   </div>
 
   <div id="search-results"></div>
+
+  <!-- <button id="load-more-button">Load More Results</button> -->
 
   <script src="./index.js"></script>
 </body>
