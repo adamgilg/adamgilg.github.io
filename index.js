@@ -19,7 +19,6 @@
     var searchResults = document.getElementById('search-results');
     var lightbox = document.getElementById('lightbox-background');
     var lightboxArrows = document.getElementById('arrows');
-    // var lightboxRight = document.getElementById('right');
     // for real world use
     searchButton.addEventListener('click', performSearch);
 
@@ -31,11 +30,9 @@
 
     // Use the parent element to handle all clicks on the child image divs
     searchResults.addEventListener('click', handleImageClick);
-    // loadMoreButton.addEventListener('click', loadMoreResults);
 
     root.addEventListener('keydown', handleKeyboardInput);
-    // searchOverlay.addEventListener('transitionend', fadeComplete);
-    lightbox.addEventListener('click', handleLightboxClick);
+    lightbox.addEventListener('click', closeLightbox);
     lightboxArrows.addEventListener('click', handleArrowClick);
     // lightbox.addEventListener('transitionend', fadeComplete);
   }
@@ -59,7 +56,7 @@
         break;
       // escape
       case 27:
-        toggleLightbox();
+        closeLightbox();
         break;
     }
   }
@@ -174,12 +171,20 @@
     e.stopPropagation();
   }
 
-  function handleLightboxClick(e) {
-    if (e.target.id !== 'lightbox-image') {
+  function closeLightbox(e) {
+    // Not always called from an event handler, so check for e
+    // and check to make sure the click doesn't come from the image
+    if (!e || e.target.id !== 'lightbox-image') {
       toggleLightbox();
+      // Only do this after the lightbox fade transition has completed
+      setTimeout(function() {
+        removeLightboxImage();
+      }, 300)
     }
 
-    e.stopPropagation();
+    if (e) {
+      e.stopPropagation();
+    }
   }
 
   function handleArrowClick(e) {
@@ -210,8 +215,19 @@
     var lightboxImage = document.getElementById('lightbox-image');
 
     lightboxImage.src = currentImage.link;
+
+    lightboxImage.onload = function() {
+      lightboxImage.classList.remove('placeholder');
+    }
     appState.currentLightboxIndex = imageIndex;
     return true;
+  }
+
+  function removeLightboxImage() {
+    var lightboxImage = document.getElementById('lightbox-image');
+    lightboxImage.src = '';
+    lightboxImage.classList.add('placeholder');
+    appState.currentLightboxIndex = -1;
   }
 
   function toggleLightbox() {
