@@ -2,28 +2,13 @@
   -box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-[class*='col-'] {
+.col-1-3 {
   float: left;
   padding: 0px 10px 10px 0px;
-}
-
-/*[class*='col-']:last-of-type {
-  padding-right: 0;
-}*/
-
-.col-2-3 {
-  width: 66.66%;
-}
-.col-1-3 {
   width: 33.33%;
-}
-
-.grid:after {
-  clear: both;
-  content: "";
-  display: table;
 }
 
 #search-overlay {
@@ -36,25 +21,31 @@
 }
 
 #search-wrapper {
-  position: fixed;
+  position: absolute;
   top: 40%;
   left: 40%;
 }
 
 .search {
   display: block;
-  width: 200px;
-  font-size: 35px;
   font-family: helvetica;
-  text-align: center;
-  background-color: grey;
   border: none;
   border-radius: 3px;
+}
+
+#search-query {
+  width: 200px;
+  font-size: 35px;
+  text-indent: 5px;
 }
 
 #search-button {
   margin-top: 5px;
   cursor: pointer;
+  font-size: 20px;
+  background-color: yellow;
+  width: 100px;
+  float: right;
 }
 
 .img-holder {
@@ -62,6 +53,7 @@
   background-repeat: no-repeat;
   background-size: cover;
   border: 1px solid black;
+  border-radius: 3px;
   cursor: pointer;
   height: 200px;
 }
@@ -79,6 +71,7 @@
 #lightbox {
   display: inline-block;
   margin-top: 50px;
+  position: relative;
   z-index: 100;
 }
 
@@ -96,8 +89,10 @@
 #lightbox-image {
   background-color: black;
   border: 5px solid white;
+  border-radius: 3px;
   display: block;
   margin: auto;
+  max-height: 500px;
 }
 
 #lightbox-close {
@@ -111,6 +106,57 @@
 
 #lightbox-close:after {
   content: "\00d7";
+}
+
+#arrows {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  color: white;
+}
+
+.arrow-wrapper {
+  cursor: pointer;
+  height: 100%;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity 0.25s ease-out;
+  width: 33%;
+}
+
+.arrow-wrapper:hover {
+  opacity: 1;
+  transition: opacity 0.25s ease-out;
+}
+
+.arrow {
+  color: white;
+  background-color: black;
+  border: 1px solid white;
+  border-radius: 3px;
+  font-size: 20px;
+  height: 25px;
+  line-height: 25px;
+  position: absolute;
+  top: 40%;
+  width: 25px;
+}
+
+#left {
+  left: 0;
+}
+
+#left-arrow {
+  left: 15px;
+}
+
+#right {
+  right: 0;
+}
+
+#right-arrow {
+  right: 15px;
 }
 
 .fade {

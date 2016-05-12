@@ -5,19 +5,23 @@
 <body>
   <div id="search-overlay" class="fade show">
     <div id="search-wrapper">
-      <input id="search-query" class="search"></input>
+      <input id="search-query" placeholder="search for..." class="search"></input>
       <button id="search-button" class="search">Search</button>
     </div>
   </div>
 
   <div id="lightbox-background" class="fade hide">
     <div id="lightbox">
+      <div id="arrows">
+        <div id="left" class="arrow-wrapper"><div id="left-arrow" class="arrow">&#9664;</div></div>
+        <div id="right" class="arrow-wrapper"><div id="right-arrow" class="arrow">&#9658;</div></div>
+      </div>
       <img id="lightbox-image"></img>
       <div id="lightbox-close"></div>
     </div>
   </div>
 
-  <div id="search-results"></div>
+  <div id="search-results" class="grid"></div>
 
   <!-- <button id="load-more-button">Load More Results</button> -->
 

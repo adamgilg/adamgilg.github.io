@@ -5,7 +5,8 @@
 
   var appState = {
     images: [],
-    currentLightboxIndex: 0
+    currentLightboxIndex: null,
+    loading: false
   };
 
   function initialize() {
@@ -17,12 +18,13 @@
     var searchButton = document.getElementById('search-button');
     var searchResults = document.getElementById('search-results');
     var lightbox = document.getElementById('lightbox-background');
-    var loadMoreButton = document.getElementById('load-more-button');
+    var lightboxArrows = document.getElementById('arrows');
+    // var lightboxRight = document.getElementById('right');
     // for real world use
-    // searchButton.addEventListener('click', performSearch);
+    searchButton.addEventListener('click', performSearch);
 
     // for dev
-    searchButton.addEventListener('click', handleSearchResults.bind(undefined, JSON.stringify(sampleResult)));
+    // searchButton.addEventListener('click', handleSearchResults.bind(undefined, JSON.stringify(sampleResult)));
 
     // for browserstack testing
     // handleSearchResults(JSON.stringify(sampleResult));
@@ -34,11 +36,19 @@
     root.addEventListener('keydown', handleKeyboardInput);
     // searchOverlay.addEventListener('transitionend', fadeComplete);
     lightbox.addEventListener('click', handleLightboxClick);
+    lightboxArrows.addEventListener('click', handleArrowClick);
     // lightbox.addEventListener('transitionend', fadeComplete);
   }
 
   function handleKeyboardInput(e) {
     switch (e.keyCode) {
+      // enter/return to submit search
+      case 13:
+        // only do this if we have no images already loaded
+        // and we are not currently loading images
+        if (!appState.images.length && !appState.loading) {
+          performSearch();
+        }
       // left arrow
       case 37:
         switchLightbox('left');
@@ -49,9 +59,62 @@
         break;
       // escape
       case 27:
-        closeLightbox();
+        toggleLightbox();
         break;
     }
+  }
+
+  function performSearch(e) {
+    // check to see if search query contains any characters
+    if (/\S/.test(document.getElementById('search-query').value)) {
+      appState.loading = true;
+      var request = new XMLHttpRequest();
+
+      var url = buildURL();
+
+      request.open('GET', url);
+      request.onload = function() {
+        if (request.status === 200) {
+          handleSearchResults(request.response)
+          appState.loading = false;
+        } else {
+          console.log('error fetching search results: ', request.status)
+          appState.loading = false;
+        }
+      }
+      request.send();
+    } else {
+      // if there are no characters, alert the user
+      alert('Please enter search terms');
+    }
+  }
+
+  function buildURL() {
+    // Set up initial variables for url
+    var url = 'https://www.googleapis.com/customsearch/v1?';
+    var key = 'AIzaSyCCnsPFGmseJamrNwLs4-zTf2ONYJjvTzA';
+    var searchEngineID = '010842445193838990140:hpytv50nw20';
+    var searchQuery = document.getElementById('search-query').value;
+    var startIndex = appState.images.length;
+
+    // build out a parameters object
+    var params = {
+      key: key,
+      cx: searchEngineID,
+      q: searchQuery,
+      searchType: 'image',
+      imgSize: 'large',
+      num: 9,
+      safe: 'high'
+    }
+
+    // convert the parameters object into an array of properly encoded strings
+    // then join the array itms with &s and add them to the existing url string
+    url = url.concat(Object.keys(params).map(function(key) {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+    }).join('&'));
+
+    return url;
   }
 
   function handleSearchResults(results) {
@@ -104,7 +167,7 @@
       // make sure it's a number if we're going to open the lightbox
       if (imageIndex !== NaN) {
         setLightboxImage(imageIndex);
-        openLightbox();
+        toggleLightbox();
       }
     }
 
@@ -113,34 +176,32 @@
 
   function handleLightboxClick(e) {
     if (e.target.id !== 'lightbox-image') {
-      var lightboxBackground = document.getElementById('lightbox-background');
-      fadeInOrOut(lightboxBackground);
+      toggleLightbox();
     }
 
     e.stopPropagation();
   }
 
-  // Have open/close as distinct functions to ensure we're calling the correct one
-  // Rather than single toggle function potentially being called from the wrong place
-  function closeLightbox() {
-    var lightboxBackground = document.getElementById('lightbox-background');
-    fadeInOrOut(lightboxBackground);
-  }
-
-  function openLightbox() {
-    var lightboxBackground = document.getElementById('lightbox-background');
-    fadeInOrOut(lightboxBackground);
+  function handleArrowClick(e) {
+    if (e.target.id.includes('left')) {
+      switchLightbox('left');
+    } else if (e.target.id.includes('right')) {
+      switchLightbox('right');
+    }
+    e.stopPropagation();
   }
 
   function switchLightbox(direction) {
-    // determine whether to add or subtract from our lightbox index
-    var indexChange = direction === 'left' ? -1 : 1;
-    var nextImageIndex = appState.currentLightboxIndex + indexChange;
+    if (appState.currentLightboxIndex !== null) {
+      // determine whether to add or subtract from our lightbox index
+      var indexChange = direction === 'left' ? -1 : 1;
+      var nextImageIndex = appState.currentLightboxIndex + indexChange;
 
-    // Only switch image if the next image is within our image array range
-    if (nextImageIndex >= 0 && nextImageIndex < appState.images.length) {
-      setLightboxImage(nextImageIndex);
-      appState.currentLightboxIndex = nextImageIndex;
+      // Only switch image if the next image is within our image array range
+      if (nextImageIndex >= 0 && nextImageIndex < appState.images.length) {
+        setLightboxImage(nextImageIndex);
+        appState.currentLightboxIndex = nextImageIndex;
+      }
     }
   }
 
@@ -150,60 +211,14 @@
 
     lightboxImage.src = currentImage.link;
     appState.currentLightboxIndex = imageIndex;
+    return true;
   }
 
-  function performSearch(e) {
-    // check to see if search query contains any characters
-    if (/\S/.test(document.getElementById('search-query').value)) {
-      var request = new XMLHttpRequest();
-
-      var url = buildURL();
-
-      request.open('GET', url);
-      request.onload = function() {
-        console.log('status', request.status);
-        console.log('request', request);
-        // if (request.status === '200') {
-          handleSearchResults(request.response)
-        // } else {
-          //// TODO: implement error handling
-          // console.log('error', request.status)
-        // }
-      }
-      request.send();
-    } else {
-      // if there are no characters, alert the user
-      alert('Please enter search terms');
+  function toggleLightbox() {
+    if (appState.currentLightboxIndex !== null) {
+      var lightboxBackground = document.getElementById('lightbox-background');
+      fadeInOrOut(lightboxBackground);
     }
-  }
-
-  function buildURL() {
-    // Set up initial variables for url
-    var url = 'https://www.googleapis.com/customsearch/v1?';
-    var key = 'AIzaSyCCnsPFGmseJamrNwLs4-zTf2ONYJjvTzA';
-    var searchEngineID = '010842445193838990140:hpytv50nw20';
-    var searchQuery = document.getElementById('search-query').value;
-    var startIndex = appState.images.length;
-
-    // build out a parameters object
-    var params = {
-      key: key,
-      cx: searchEngineID,
-      q: searchQuery,
-      start: startIndex,
-      searchType: 'image',
-      imgSize: 'medium',
-      num: 9,
-      safe: 'high'
-    }
-
-    // convert the parameters object into an array of properly encoded strings
-    // then join the array itms with &s and add them to the existing url string
-    url = url.concat(Object.keys(params).map(function(key) {
-      return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-    }).join('&'));
-
-    return url;
   }
 
 })(window);
