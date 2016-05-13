@@ -18,7 +18,8 @@
     var searchResults = document.getElementById('search-results');
     var lightbox = document.getElementById('lightbox-background');
     var lightboxArrows = document.getElementById('arrows');
-    // for real world use
+
+    // do the actual search
     searchButton.addEventListener('click', performSearch);
 
     // Use the parent element to handle all clicks on the child image divs
