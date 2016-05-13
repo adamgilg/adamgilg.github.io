@@ -1,16 +1,12 @@
 (function(root) {
   // Initialize the app when the content loads
-  root.addEventListener("DOMContentLoaded", function() { initialize(); });
+  root.addEventListener("DOMContentLoaded", function() { bindEventListeners() });
 
   var appState = {
     images: [],
     currentLightboxIndex: null,
     loading: false
   };
-
-  function initialize() {
-    bindEventListeners();
-  }
 
   function bindEventListeners() {
     var searchOverlay = document.getElementById('search-overlay');
@@ -28,7 +24,6 @@
     root.addEventListener('keydown', handleKeyboardInput);
     lightbox.addEventListener('click', closeLightbox);
     lightboxArrows.addEventListener('click', handleArrowClick);
-    // lightbox.addEventListener('transitionend', fadeComplete);
   }
 
   function handleKeyboardInput(e) {
@@ -42,18 +37,19 @@
         }
       // left arrow
       case 37:
-        switchLightbox('left');
+        pageImage('left');
         break;
       // right arrow
       case 39:
-        switchLightbox('right');
+        pageImage('right');
         break;
       // escape
       case 27:
-        if (appState.currentLightboxIndex !== null && appState.currentLightboxIndex !== -1) {
+        if (appState.currentLightboxIndex !== null) {
           closeLightbox();
         }
         break;
+      default:
     }
   }
 
@@ -113,29 +109,35 @@
   function handleSearchResults(results) {
     // parse out the items array from the api response
     var parsedResults = JSON.parse(results).items;
+    var searchOverlay = document.getElementById('search-overlay');
+    var searchResults = document.getElementById('search-results');
+    // container for the elements we will create
+    var fragment = document.createDocumentFragment();
 
     // Loop through the results and generate elements to put into the grid
     parsedResults.forEach(function(item) {
       // create the new grid element
       // pass in the length (before we push the new item) as the new item's index
       var element = generateImage(item.image.thumbnailLink, appState.images.length);
-      // append it to the search-results element
-      document.getElementById('search-results').appendChild(element);
+      // add it to the fragment created above
+      fragment.appendChild(element);
 
       appState.images.push(item);
     });
 
-    var searchOverlay = document.getElementById('search-overlay');
+    // Add the container to the DOM
+    searchResults.appendChild(fragment);
     fadeInOrOut(searchOverlay);
   }
 
   function fadeInOrOut(element) {
-    if (element.classList.contains('show')) {
-      element.classList.remove('show');
-      element.classList.add('hide');
-    } else if (element.classList.contains('hide')) {
-      element.classList.remove('hide');
-      element.classList.add('show');
+    var classList = element.classList;
+    if (classList.contains('show')) {
+      classList.remove('show');
+      classList.add('hide');
+    } else if (classList.contains('hide')) {
+      classList.remove('hide');
+      classList.add('show');
     }
   }
 
@@ -153,6 +155,8 @@
   }
 
   function handleImageClick(e) {
+    e.stopPropagation();
+
     // only open the lightbox if the clicked element is one of our images
     if (e.target.className.includes('img-holder')) {
       // get the index attribute and coerce it into a number
@@ -163,46 +167,45 @@
         toggleLightbox();
       }
     }
-
-    e.stopPropagation();
   }
 
   function closeLightbox(e) {
     // Not always called from an event handler, so check for e
+    if (e) {
+      e.stopPropagation();
+    }
+
     // and check to make sure the click doesn't come from the image
     if (!e || e.target.id !== 'lightbox-image') {
       toggleLightbox();
       // Only do this after the lightbox fade transition has completed
-      setTimeout(function() {
-        removeLightboxImage();
-      }, 300)
-    }
-
-    if (e) {
-      e.stopPropagation();
+      // TODO: change to transitionend event
+      var lightboxBackground = document.getElementById('lightbox-background');
+      lightboxBackground.addEventListener('transitionend', removeLightboxImage);
     }
   }
 
   function handleArrowClick(e) {
-    if (e.target.id.includes('left')) {
-      switchLightbox('left');
-    } else if (e.target.id.includes('right')) {
-      switchLightbox('right');
-    }
     e.stopPropagation();
+
+    if (e.target.id.includes('left')) {
+      pageImage('left');
+    } else if (e.target.id.includes('right')) {
+      pageImage('right');
+    }
   }
 
-  function switchLightbox(direction) {
-    if (appState.currentLightboxIndex !== null) {
-      // determine whether to add or subtract from our lightbox index
-      var indexChange = direction === 'left' ? -1 : 1;
-      var nextImageIndex = appState.currentLightboxIndex + indexChange;
+  function pageImage(direction) {
+    // sanity check
+    if (appState.currentLightboxIndex === null) return;
 
-      // Only switch image if the next image is within our image array range
-      if (nextImageIndex >= 0 && nextImageIndex < appState.images.length) {
-        setLightboxImage(nextImageIndex);
-        appState.currentLightboxIndex = nextImageIndex;
-      }
+    // determine whether to add or subtract from our lightbox index
+    var indexChange = direction === 'left' ? -1 : 1;
+    var nextImageIndex = appState.currentLightboxIndex + indexChange;
+
+    // Only switch image if the next image is within our image array range
+    if (nextImageIndex >= 0 && nextImageIndex < appState.images.length) {
+      setLightboxImage(nextImageIndex);
     }
   }
 
@@ -216,14 +219,16 @@
       lightboxImage.classList.remove('placeholder');
     }
     appState.currentLightboxIndex = imageIndex;
-    return true;
   }
 
   function removeLightboxImage() {
     var lightboxImage = document.getElementById('lightbox-image');
+    var lightboxBackground = document.getElementById('lightbox-background');
     lightboxImage.src = '';
     lightboxImage.classList.add('placeholder');
-    appState.currentLightboxIndex = -1;
+    appState.currentLightboxIndex = null;
+
+    lightboxBackground.removeEventListener('transitionend', removeLightboxImage);
   }
 
   function toggleLightbox() {
