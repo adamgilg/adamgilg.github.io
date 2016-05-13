@@ -50,7 +50,9 @@
         break;
       // escape
       case 27:
-        closeLightbox();
+        if (appState.currentLightboxIndex !== null && appState.currentLightboxIndex !== -1) {
+          closeLightbox();
+        }
         break;
     }
   }

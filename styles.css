@@ -124,7 +124,7 @@
 .arrow-wrapper {
   cursor: pointer;
   height: 100%;
-  opacity: 0;
+  opacity: 0.3;
   position: absolute;
   top: 0;
   transition: opacity 0.25s ease-out;
